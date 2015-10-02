@@ -21,29 +21,42 @@ w, h=Window.size
 class GeometryPad(FloatLayout):
 
     _radius=NumericProperty(100)
-    _points=ListProperty([0, 0, 0, 100])
+    _points=ListProperty([0, 0, 100, 0])
     _points_sin=ListProperty([0, 0, w, h])
     _angle=NumericProperty(0)
 
 
     def __init__(self, **kwargs):
         super(GeometryPad, self).__init__(**kwargs)
-
         self._velocity=1
-        self._time=0
+        self._x_axis=(0, 0, w, 0)
+        self._y_axis=(0, 0, 0, h)
 
         with self.canvas:
+            #-------------------------------------
+            # X-Y Coordinate
+            #-------------------------------------
+            ctx.PushMatrix()
+            self._tr_coord=ctx.Translate(150, 200, 0)
+            self._label=Label(text="182 degree")
+            ctx.Color(0.0, 0., 1, 1.0, mode='rgba')
+            vtx.Line(points=self._x_axis, width=1)
+            vtx.Line(points=self._y_axis, width=1)
+            ctx.PopMatrix()
+
 
             ctx.PushMatrix()
             self._tr=ctx.Transform()
+            #  circle + radius
             ctx.Color(1.0, 0., 0, 1.0, mode='rgba')
-            # center + radius
             vtx.Line(circle=(0, 0, self._radius), width=1)
             ctx.Color(1.0, 1., 1, 1.0, mode='rgba')
             self._line=vtx.Line(points=self._points, width=1)
             ctx.PopMatrix()
 
-            # sin wave
+            #-------------------------------------
+            #  sin wave
+            #-------------------------------------
             ctx.Color(0.0, 1., 0, 1.0, mode='rgba')
             ctx.PushMatrix()
             self._tr_sin=ctx.Transform()
@@ -52,23 +65,23 @@ class GeometryPad(FloatLayout):
 
 
     def update(self, delta):
-        self._angle+=2 * 0.017
-        self._time+=delta
+        # in degree
+        self._angle=(self._angle+self._velocity)%540
 
+        self._label.text="%d degree" % (self._angle, )
         #----------------------------------------------
         self._tr.identity()
         self._tr.translate(150, 200, 0)
         self._tr.rotate(np.radians(self._angle), 0, 0, 1)
-        self._tr.translate(0, 0, 0)
 
         points = []
         # radians
 
         np.set_printoptions(precision=2)
-        X=np.arange(start=0, stop=self._angle, step=0.01)
-        Y=np.sin(X)
+        X=np.arange(start=0, stop=self._angle, step=1)
+        Y=np.sin(np.radians(X))
+
         #print Y
-        print "number of p ", len(X)
         for i in range(len(X)):
             points.append(X[i])
             points.append(Y[i] * 100)
@@ -78,25 +91,11 @@ class GeometryPad(FloatLayout):
         #self._points_sin=points
         self._wave.points=points
 
-    def update_sin(self, dt):
-        cy = self.height * 0.6
-        cx = self.width * 0.1
-        w = self.width * 0.8
-        step = 20
-        points = []
-        self.dt += dt
-        for i in range(int(w / step)):
-            x = i * step
-            points.append(cx + x)
-            points.append(cy + sin(x / w * 8. + self.dt) * self.height * 0.2)
-
-        self.points = points
-
 
 
     def animate(self, do_animation):
         if do_animation:
-            Clock.schedule_interval(self.update, 1./60.)
+            Clock.schedule_interval(self.update, 1./30.)
         else:
             Clock.unschedule(self.update)
 
