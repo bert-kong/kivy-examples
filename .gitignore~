@@ -1,0 +1,6 @@
+*.txt
+tags
+*.spec
+.*.swp
+.*.swo
+*.pyc
