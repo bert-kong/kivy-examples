@@ -49,7 +49,7 @@ class View(Widget):
 
         # debug
         if False:
-            print self._tr.matrix
+            printf(self._tr.matrix)
 
 
 
